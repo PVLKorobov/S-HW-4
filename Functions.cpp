@@ -2,14 +2,14 @@
 using std::ifstream;
 
 
-vector<string> parseLine(string line)
+vector<string> parse_line(string line, char divider)
 {
 	int pos = 0;
 	vector<string> res;
-	while (line.find(' ', pos + 1) != string::npos)
+	while (line.find(divider, pos + 1) != string::npos)
 	{
 		int prevPos = pos;
-		pos = line.find(' ', pos + 1);
+		pos = line.find(divider, pos + 1);
 		int len;
 		if (prevPos == 0)
 			len = pos - prevPos;
@@ -17,87 +17,73 @@ vector<string> parseLine(string line)
 			len = pos - prevPos - 1;
 
 		res.push_back(line.substr(prevPos, len));
-		if (line.find(' ', pos + 1) == string::npos)
+		if (line.find(divider, pos + 1) == string::npos)
 			res.push_back(line.substr(pos + 1, line.length() - pos - 1));
 	}
 	return res;
 }
 
-void readFileTo(Student* arr, int size)
+string get_file_as_str()
 {
-	string buffer;
 	ifstream fileStream;
 	fileStream.open("data-ansi.txt");
-	bool first = true;
-	int i = 0, pos = 1;
+	string fileContents;
+	string buffer;
 	while (getline(fileStream, buffer))
-	{
-		if (not first)
-		{
-			if (pos == 1)
-			{
-				vector<string> data = parseLine(buffer);
-				arr[i].name = data.at(0);
-				arr[i].surname = data.at(1);
-			}
-			if (pos == 2) { arr[i].year = buffer; }
-			if (pos == 3)
-			{
-				for (char num : buffer)
-				{
-					int grade = num - '0';
-					arr[i].lastGrades.push_back(grade);
-				}
-				++i;
-				pos = 0;
-			}
-
-			++pos;
-		}
-		else
-			first = false;
-	}
+		fileContents += buffer + '\n';
 
 	fileStream.close();
+	return fileContents;
 }
 
-void printStudentData(Student data)
+Student** read_file_to(int size)
 {
-	cout << data.name << ' ' << data.surname << '\n';
-	cout << data.year << '\n';
-	for (int grade : data.lastGrades)
+	Student** arr = new Student*[size];
+	string fileContents = get_file_as_str();
+
+	vector<string> segments = parse_line(fileContents, '=');
+	segments.erase(segments.begin());
+
+	return arr;
+}
+
+void print_student_data(Student* data)
+{
+	cout << data->name << ' ' << data->surname << '\n';
+	cout << data->year << '\n';
+	for (int grade : data->lastGrades)
 		cout << grade << ' ';
 }
 
-bool hasBadGrades(Student data)
+bool has_bad_grades(Student* data)
 {
-	for (int grade : data.lastGrades)
+	for (int grade : data->lastGrades)
 		if (grade < 4)
 			return true;
 	return false;
 }
 
-int maxRelativeGrade(Student* arr, int size, string year)
+int max_relative_grade(Student** arr, int size, string year)
 {
 	int maxSum = 0;
 	for (int i = 0; i < size; ++i)
 	{
-		if (arr[i].year.length() == 3)
+		if (arr[i]->year.length() == 3)
 		{
-			if (arr[i].year.substr(0, 2) == year)
+			if (arr[i]->year.substr(0, 2) == year)
 			{
 				int sum = 0;
-				for (int grade : arr[i].lastGrades)
+				for (int grade : arr[i]->lastGrades)
 					sum += grade;
 				if (sum > maxSum)
 					maxSum = sum;
 			}
 		}
 		else
-			if (arr[i].year.substr(0, 1) == year)
+			if (arr[i]->year.substr(0, 1) == year)
 			{
 				int sum = 0;
-				for (int grade : arr[i].lastGrades)
+				for (int grade : arr[i]->lastGrades)
 					sum += grade;
 				if (sum > maxSum)
 					maxSum = sum;
@@ -106,26 +92,29 @@ int maxRelativeGrade(Student* arr, int size, string year)
 	return maxSum;
 }
 
-bool isBestStudent(Student data, Student* arr, int size)
+bool is_best_student(Student* data, Student** arr, int size)
 {
 	int maxGrade;
-	if (data.year.length() == 3)
-		maxGrade = maxRelativeGrade(arr, size, data.year.substr(0, 2));
+	Student studStruct = *data;
+	string year = studStruct.year;
+	if (year.length() == 3)
+		maxGrade = max_relative_grade(arr, size, year.substr(0, 2));
 	else
-		maxGrade = maxRelativeGrade(arr, size, data.year.substr(0, 1));
+		maxGrade = max_relative_grade(arr, size, year.substr(0, 1));
 
 	int gradeSum = 0;
-	for (int grade : data.lastGrades)
+	vector<int> grades = data->lastGrades;
+	for (int grade : grades)
 		gradeSum += grade;
 
-	return (gradeSum >= maxGrade && not hasBadGrades(data));
+	return (gradeSum >= maxGrade && not has_bad_grades(data));
 }
 
-int countWithGoodGrades(Student* arr, int size)
+int count_with_good_grades(Student** arr, int size)
 {
 	int count = 0;
 	for (int i = 0; i < size; ++i)
-		if (not hasBadGrades(arr[i]))
+		if (not has_bad_grades(arr[i]))
 			++count;
 	return count;
 }

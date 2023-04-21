@@ -16,19 +16,22 @@ int main()
     size = stoi(buffer);
     fileStream.close();
 
-    Student* structArray = new Student[size];
-    readFileTo(structArray, size);
+    Student** structArray = new Student*[size];
+    structArray = read_file_to(size);
 
-    cout << "Количество учеников с оценками не ниже 4: " << countWithGoodGrades(structArray, size) << '\n';
+    cout << "Количество учеников с оценками не ниже 4: " << count_with_good_grades(structArray, size) << '\n';
 
     vector<Student*> bestStudents;
     for (int i = 0; i < size; ++i)
-        if (isBestStudent(structArray[i], structArray, size))
-            bestStudents.push_back(&structArray[i]);
+    {
+        Student* bufferStructure = structArray[i];
+        if (is_best_student(bufferStructure, structArray, size))
+            bestStudents.push_back(structArray[i]);
+    }
     cout << "Лучшие ученики школы\n";
     for (Student* studPtr : bestStudents)
     {
-        printStudentData(*studPtr);
+        print_student_data(studPtr);
         cout << '\n';
     }
         

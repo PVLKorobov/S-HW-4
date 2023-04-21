@@ -18,7 +18,7 @@ struct Student
 };
 
 
-void readFileTo(Student* arr, int size);
-void printStudentData(Student data);
-bool isBestStudent(Student data, Student* arr, int size);
-int countWithGoodGrades(Student* arr, int size);
+Student** read_file_to(int size);
+void print_student_data(Student* data);
+bool is_best_student(Student* data, Student** arr, int size);
+int count_with_good_grades(Student** arr, int size);
